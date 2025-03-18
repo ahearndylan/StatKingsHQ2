@@ -41,9 +41,9 @@ def get_game_ids_for_date(date_str, max_retries=3):
     raise Exception("Failed to fetch game IDs after multiple attempts.")
 
 def get_efficiency_stats(game_ids):
-    top_efficiency = {"name": "", "fg_pct": 0.0, "fga": 0}
-    top_plus_minus = {"name": "", "plus_minus": -100}
-    top_stocks = {"name": "", "stocks": 0}
+    top_efficiency = {"name": "", "fg_pct": 0.0, "fga": 0, "team": ""}
+    top_plus_minus = {"name": "", "plus_minus": -100, "team": ""}
+    top_stocks = {"name": "", "stocks": 0, "team": ""}
     triple_double = None
 
     for game_id in game_ids:
@@ -53,6 +53,7 @@ def get_efficiency_stats(game_ids):
 
         for p in players:
             name = p["PLAYER_NAME"]
+            team = p["TEAM_ABBREVIATION"]
             fga = p.get("FGA") or 0
             fgm = p.get("FGM") or 0
             fg_pct = fgm / fga if fga >= 15 else 0
@@ -63,24 +64,39 @@ def get_efficiency_stats(game_ids):
             rebounds = p.get("REB") or 0
             points = p.get("PTS") or 0
 
-            # Most efficient scorer (min 15 FGA)
             if fg_pct > top_efficiency["fg_pct"]:
-                top_efficiency = {"name": name, "fg_pct": round(fg_pct * 100, 1), "fga": fga}
+                top_efficiency = {
+                    "name": name,
+                    "fg_pct": round(fg_pct * 100, 1),
+                    "fga": fga,
+                    "team": team
+                }
 
-            # Best plus-minus
             if plus_minus is not None and plus_minus > top_plus_minus["plus_minus"]:
-                top_plus_minus = {"name": name, "plus_minus": plus_minus}
+                top_plus_minus = {
+                    "name": name,
+                    "plus_minus": plus_minus,
+                    "team": team
+                }
 
-            # Most combined steals and blocks
             stocks = steals + blocks
             if stocks > top_stocks["stocks"]:
-                top_stocks = {"name": name, "stocks": stocks}
+                top_stocks = {
+                    "name": name,
+                    "stocks": stocks,
+                    "team": team
+                }
 
-            # Triple-double check
             stat_categories = [points, rebounds, assists, steals, blocks]
             double_digits = sum(1 for stat in stat_categories if stat >= 10)
             if double_digits >= 3:
-                triple_double = name
+                triple_double = {
+                    "name": name,
+                    "team": team,
+                    "pts": points,
+                    "reb": rebounds,
+                    "ast": assists
+                }
 
     return top_efficiency, top_plus_minus, top_stocks, triple_double
 
@@ -88,18 +104,19 @@ def compose_tweet(date_str, efficiency, plus_minus, stocks, triple_double):
     tweet = f"""📊 Efficiency Kings – {date_str}
 
 ⚡ Most Efficient Scorer
-{efficiency['name']}: {efficiency['fg_pct']}% FG ({efficiency['fga']} FGA)
+{efficiency['name']} ({efficiency['team']}): {efficiency['fg_pct']}% FG ({efficiency['fga']} FGA)
 
-📈 Best Plus-Minus
-{plus_minus['name']}: +{plus_minus['plus_minus']}
+📈 Best +/-
+{plus_minus['name']} ({plus_minus['team']}): +{plus_minus['plus_minus']}
 
 🛡️ Defensive Beast
 {stocks['name']}: {stocks['stocks']} STL+BLK"""
 
     if triple_double:
-        tweet += f"\n\n👑 Triple-Double Alert!\n{triple_double} did it all last night."
+        tweet += f"""\n\n👑 Triple-Double Royalty
+{triple_double['name']} ({triple_double['team']}): {triple_double['pts']} | {triple_double['reb']} | {triple_double['ast']}"""
 
-    tweet += "\n\n#NBA #EfficiencyKings #StatKingsHQ"
+    tweet += "\n\n#NBAStats #StatKingsHQ"
     return tweet
 
 # ======================= #
