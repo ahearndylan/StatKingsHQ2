@@ -25,7 +25,7 @@ client = tweepy.Client(
 # ======================= #
 
 def get_yesterday_date_str():
-    est_now = datetime.now(timezone.utc) - timedelta(hours=5)
+    est_now = datetime.now(timezone.utc) - timedelta(hours=4)
     yesterday = est_now - timedelta(days=1)
     return yesterday.strftime("%m/%d/%Y")
 
