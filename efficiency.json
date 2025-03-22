@@ -1,0 +1,97 @@
+{
+    "nights": [
+      {
+        "date": "2025-03-20",
+        "efficiency": {
+          "player": "OG Anunoby",
+          "team": "NYK",
+          "fg_pct": 36.8,
+          "fga": 19
+        },
+        "plus_minus": {
+          "player": "Miles Bridges",
+          "team": "CHA",
+          "value": 20
+        },
+        "defense": {
+          "player": "Myles Turner",
+          "team": "",
+          "stocks": 6
+        },
+        "triple_double": null
+      },
+      {
+        "date": "2025-03-19",
+        "efficiency": {
+          "player": "P.J. Washington",
+          "team": "DAL",
+          "fg_pct": 50.0,
+          "fga": 18
+        },
+        "plus_minus": {
+          "player": "Isaiah Joe",
+          "team": "OKC",
+          "value": 35
+        },
+        "defense": {
+          "player": "Tari Eason",
+          "team": "",
+          "stocks": 6
+        },
+        "triple_double": {
+          "name": "Jaylin Williams",
+          "team": "OKC",
+          "pts": 19,
+          "reb": 17,
+          "ast": 11
+        }
+      },
+      {
+        "date": "2025-03-18",
+        "efficiency": {
+          "player": "Zaccharie Risacher",
+          "team": "ATL",
+          "fg_pct": 46.7,
+          "fga": 15
+        },
+        "plus_minus": {
+          "player": "Onyeka Okongwu",
+          "team": "ATL",
+          "value": 35
+        },
+        "defense": {
+          "player": "Draymond Green",
+          "team": "",
+          "stocks": 6
+        },
+        "triple_double": null
+      },
+      {
+        "date": "2025-03-17",
+        "efficiency": {
+          "player": "Tyler Herro",
+          "team": "MIA",
+          "fg_pct": 55.6,
+          "fga": 18
+        },
+        "plus_minus": {
+          "player": "Oso Ighodaro",
+          "team": "PHX",
+          "value": 39
+        },
+        "defense": {
+          "player": "Draymond Green",
+          "team": "",
+          "stocks": 8
+        },
+        "triple_double": {
+          "name": "Russell Westbrook",
+          "team": "DEN",
+          "pts": 12,
+          "reb": 12,
+          "ast": 16
+        }
+      }
+    ]
+  }
+  

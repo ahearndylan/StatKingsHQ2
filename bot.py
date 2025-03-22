@@ -2,6 +2,8 @@ import tweepy
 from nba_api.stats.endpoints import boxscoretraditionalv2, scoreboardv2
 from datetime import datetime, timedelta, timezone
 import time
+import json
+import os
 
 # ======================= #
 # TWITTER AUTHENTICATION  #
@@ -119,6 +121,51 @@ def compose_tweet(date_str, efficiency, plus_minus, stocks, triple_double):
     tweet += "\n\n#NBAStats #StatKingsHQ"
     return tweet
 
+# ============================= #
+#   SAVE JSON FOR HTML DISPLAY #
+# ============================= #
+
+def update_efficiency_json(date_str, efficiency, plus_minus, stocks, triple_double, path="efficiency.json"):
+    today_data = {
+        "date": date_str,
+        "efficiency": {
+            "player": efficiency["name"],
+            "team": efficiency["team"],
+            "fg_pct": efficiency["fg_pct"],
+            "fga": efficiency["fga"]
+        },
+        "plus_minus": {
+            "player": plus_minus["name"],
+            "team": plus_minus["team"],
+            "value": plus_minus["plus_minus"]
+        },
+        "defense": {
+            "player": stocks["name"],
+            "team": stocks["team"],
+            "stocks": stocks["stocks"]
+        },
+        "triple_double": triple_double  # Can be None or an object
+    }
+
+    try:
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                data = json.load(f)
+        else:
+            data = {"nights": []}
+
+        # Remove any existing record for this date
+        data["nights"] = [d for d in data["nights"] if d["date"] != date_str]
+        data["nights"].insert(0, today_data)
+        data["nights"] = data["nights"][:30]
+
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+
+        print(f"✅ Updated {path} with {date_str}")
+    except Exception as e:
+        print("❌ Error writing efficiency.json:", e)
+
 # ======================= #
 #        MAIN BOT         #
 # ======================= #
@@ -135,6 +182,9 @@ def run_bot():
         tweet = compose_tweet(date_str, efficiency, plus_minus, stocks, triple_double)
         print("Tweeting:\n", tweet)
         client.create_tweet(text=tweet)
+
+        # Save data to JSON file
+        update_efficiency_json(date_str, efficiency, plus_minus, stocks, triple_double)
 
     except Exception as e:
         print("Error:", e)
