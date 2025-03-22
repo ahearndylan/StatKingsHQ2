@@ -112,7 +112,7 @@ def compose_tweet(date_str, efficiency, plus_minus, stocks, triple_double):
 {plus_minus['name']} ({plus_minus['team']}): +{plus_minus['plus_minus']}
 
 🛡️ Defensive Beast
-{stocks['name']}: {stocks['stocks']} STL+BLK"""
+{stocks['name']} ({stocks['team']}): {stocks['stocks']} STL+BLK"""
 
     if triple_double:
         tweet += f"""\n\n👑 Triple-Double Royalty
