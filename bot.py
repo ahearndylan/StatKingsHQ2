@@ -2,7 +2,7 @@ import tweepy
 from nba_api.stats.endpoints import boxscoretraditionalv2, scoreboardv2
 from datetime import datetime, timedelta, timezone
 import time
-import json
+from supabase import create_client
 import os
 
 # ======================= #
@@ -23,13 +23,20 @@ client = tweepy.Client(
 )
 
 # ======================= #
+#  SUPABASE CONNECTION    #
+# ======================= #
+supabase_url = "https://fjtxowbjnxclzcogostk.supabase.co"
+supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdHhvd2JqbnhjbHpjb2dvc3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2MDE5NTgsImV4cCI6MjA1ODE3Nzk1OH0.LPkFw-UX6io0F3j18Eefd1LmeAGGXnxL4VcCLOR_c1Q"
+supabase = create_client(supabase_url, supabase_key)
+
+# ======================= #
 #     NBA STATS LOGIC     #
 # ======================= #
 
 def get_yesterday_date_str():
     est_now = datetime.now(timezone.utc) - timedelta(hours=4)
     yesterday = est_now - timedelta(days=1)
-    return yesterday.strftime("%m/%d/%Y")
+    return yesterday.strftime("%Y-%m-%d")  # YYYY-MM-DD for DB use
 
 def get_game_ids_for_date(date_str, max_retries=3):
     for attempt in range(max_retries):
@@ -121,53 +128,42 @@ def compose_tweet(date_str, efficiency, plus_minus, stocks, triple_double):
     tweet += "\n\n#NBAStats #StatKingsHQ"
     return tweet
 
-# ============================= #
-#   SAVE JSON FOR HTML DISPLAY #
-# ============================= #
+# ============================== #
+#   SUPABASE JSON INSERT/UPSERT  #
+# ============================== #
 
-def update_efficiency_json(date_str, efficiency, plus_minus, stocks, triple_double, path="efficiency.json"):
-    today_data = {
+def update_efficiency_to_db(date_str, efficiency, plus_minus, stocks, triple_double):
+    payload = {
         "date": date_str,
-        "efficiency": {
-            "player": efficiency["name"],
-            "team": efficiency["team"],
-            "fg_pct": efficiency["fg_pct"],
-            "fga": efficiency["fga"]
-        },
-        "plus_minus": {
-            "player": plus_minus["name"],
-            "team": plus_minus["team"],
-            "value": plus_minus["plus_minus"]
-        },
-        "defense": {
-            "player": stocks["name"],
-            "team": stocks["team"],
-            "stocks": stocks["stocks"]
-        },
-        "triple_double": triple_double  # Can be None or an object
+        "data": {
+            "efficiency": {
+                "player": efficiency["name"],
+                "team": efficiency["team"],
+                "fg_pct": efficiency["fg_pct"],
+                "fga": efficiency["fga"]
+            },
+            "plus_minus": {
+                "player": plus_minus["name"],
+                "team": plus_minus["team"],
+                "value": plus_minus["plus_minus"]
+            },
+            "defense": {
+                "player": stocks["name"],
+                "team": stocks["team"],
+                "stocks": stocks["stocks"]
+            },
+            "triple_double": triple_double  # can be None
+        }
     }
 
     try:
-        if os.path.exists(path):
-            with open(path, "r") as f:
-                data = json.load(f)
-        else:
-            data = {"nights": []}
-
-        # Remove any existing record for this date
-        data["nights"] = [d for d in data["nights"] if d["date"] != date_str]
-        data["nights"].insert(0, today_data)
-        data["nights"] = data["nights"][:30]
-
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2)
-
-        print(f"✅ Updated {path} with {date_str}")
+        response = supabase.table("efficiencykings").upsert(payload, on_conflict="date").execute()
+        print("✅ Supabase updated:", response)
     except Exception as e:
-        print("❌ Error writing efficiency.json:", e)
+        print("❌ Supabase write error:", e)
 
 # ======================= #
-#        MAIN BOT         #
+#         MAIN BOT        #
 # ======================= #
 
 def run_bot():
@@ -183,8 +179,8 @@ def run_bot():
         print("Tweeting:\n", tweet)
         client.create_tweet(text=tweet)
 
-        # Save data to JSON file
-        update_efficiency_json(date_str, efficiency, plus_minus, stocks, triple_double)
+        # Push to Supabase
+        update_efficiency_to_db(date_str, efficiency, plus_minus, stocks, triple_double)
 
     except Exception as e:
         print("Error:", e)
