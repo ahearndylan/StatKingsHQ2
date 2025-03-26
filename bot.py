@@ -110,7 +110,9 @@ def get_efficiency_stats(game_ids):
     return top_efficiency, top_plus_minus, top_stocks, triple_double
 
 def compose_tweet(date_str, efficiency, plus_minus, stocks, triple_double):
-    tweet = f"""📊 Efficiency Kings – {date_str}
+    formatted_date = datetime.strptime(date_str, "%Y-%m-%d").strftime("%m/%d/%Y")
+
+    tweet = f"""📊 Efficiency Kings – {formatted_date}
 
 ⚡ Most Efficient Scorer
 {efficiency['name']} ({efficiency['team']}): {efficiency['fg_pct']}% FG ({efficiency['fga']} FGA)
