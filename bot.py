@@ -127,7 +127,7 @@ def compose_tweet(date_str, efficiency, plus_minus, stocks, triple_double):
         tweet += f"""\n\n👑 Triple-Double Royalty
 {triple_double['name']} ({triple_double['team']}): {triple_double['pts']} | {triple_double['reb']} | {triple_double['ast']}"""
 
-    tweet += "\n\n#NBAStats #StatKingsHQ"
+    tweet += "\n\n#NBAStats #CourtKingsHQ"
     return tweet
 
 # ============================== #
